@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# CPLEX
+export cplexdir=/home/commun_depinfo/enseignants/lemarchand/CPLEX_Studio126
+if [ xxx"$LD_LIBRARY_PATH" = xxx ]; then
+	export LD_LIBRARY_PATH="$cplexdir"/opl/lib/x86_sles10_4.1/static_pic/:"$cplexdir"/opl/lib/x86-64_linux/shared_pic:"$cplexdir"/opl/bin/x86-64_linux/:"$cplexdir"/cplex/lib/x86-64_linux/static_pic/
+else
+	export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":"$cplexdir"/opl/lib/x86_sles10_4.1/static_pic/:"$cplexdir"/opl/lib/x86-64_linux/shared_pic:"$cplexdir"/opl/bin/x86-64_linux/:"$cplexdir"/cplex/lib/x86-64_linux/static_pic/
+fi
+export oplrun="$cplexdir"/opl/bin/x86-64_linux/oplrun
+
+
+
+
+# genere une serie de problemes de couverture
+export trials=1
+
+# la description des antennes
+rm -f tmpantennes.dat
+cat << FIN > tmpantennes.dat
+modeles = {
+< 3.6, 120 >,
+< 1.4, 100 >
+< 0.4, 10 >
+};
+FIN
+
+
+for i in `seq  $trials`
+do
+	#rm -f couv.dat
+	cp tmpantennes.dat couv.dat # les antennes dans le .dat du probleme
+	./genPoints 8 $i >> couv.dat # les points et leur matrice de visibilité ajoutés au .dat
+	oplrun couv2heuristique.mod couv.dat # resolution heuristique 
+	echo val trial $i " : " `head -1 couv2.res` # analyse partielle du resultat (val fct obj)
+done
+
+#rm -f couv.dat couv.res tmpantennes.dat
+
